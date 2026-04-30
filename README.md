@@ -313,24 +313,7 @@ All components share a **common ground** with the Raspberry Pi for stable operat
 
 ## 8.3 Code Flowchart
 
-Insert a flowchart showing your code logic.
-
-Suggested sequence:
-
-- start,
-- initialize,
-- wait for input,
-- read input,
-- decision,
-- trigger output,
-- repeat or reset,
-- error handling.
-
-**Insert image below:**  
-<img width="1600" height="1200" alt="image" src="" />
-<img width="1600" height="1200" alt="image" src="" />
-
-![flowchar](./images/WhatsApp Image 2026-04-30 at 3.25.06 PM.jpeg)
+![flowchart](./images/flowchart.jpeg)
 
 
 ---
