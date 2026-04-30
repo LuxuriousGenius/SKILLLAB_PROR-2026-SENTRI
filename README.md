@@ -55,20 +55,20 @@ By the final review, this README should clearly show:
 
 # 1. Team Identity
 
-## 1.1 Studio / Group Name
+## 1.1 SENTRI
 
-`Project^2`
 
 ## 1.2 Team Members
 
 | Name                  | Primary Role                    | Secondary Role   | Strengths Brought to the Project |
 | --------------        | ------------------------------- | --------------   | -------------------------------- |
-| `Mrugendra Vasmatkar` | `[Electronics / Coding / App ]` | `Documentation`  | `Documentation, Gift of Gab `|
-| `Jyoti Bagate`        | `[Electronics / Fabrication]`   | `[Coding]`       | `Material Handling, Hardware`    |
+| `Hrishikesh Pandit` | `[ Coding  ]` | `Documentation`  | `Documentation,  `|
+| `Soham Pednekar`        | `[Electronics / Fabrication]`   | `[Coding]`       | `Material Handling, Hardware`    |
+| `Shaunak Karambelkar`        | `[Electronics / Fabrication]`   | `[Coding]`       | `Material Handling, Hardware`    |
+| `Muskan Jaiswal`        | `[Electronics / Fabrication]`   | `[Coding]`       | `Material Handling, Hardware`    |
 
-## 1.3 Project Title
+## 1.3 SafeDrive System
 
-`"Project Project"`
 
 `(because Project-or)`
 
@@ -76,18 +76,15 @@ By the final review, this README should clearly show:
 
 ## 1.4 One-Line Pitch
 
-`A projected, fully customizable time portal where engineering education is done through PUBG battlefield in the comfort of our home`
+SafeDrive System is an edge-computing safety node that fuses real-time cabin air quality and vehicle dynamics to instantly alert drivers of drowsiness risks or dangerous driving behaviors before accidents happen.
 
 ## 1.5 Expanded Project Idea
 
-In 1–2 paragraphs, explain:
+ 
+SafeDrive System is an edge-computing active safety monitor designed for vehicles that correlates environmental stressors with kinetic data to prevent accidents. For the driver and passengers, it creates a seamless, preventative safety experience by providing instant, real-time interventions. Instead of passively recording data, the system actively tracks cabin life-support conditions and immediately alerts the driver to severe $CO_2$ buildup or extreme heat that causes drowsiness, while simultaneously warning them of erratic driving behaviors like harsh braking or sudden impacts.
 
-- what your project is,
-- what kind of experience it creates,
-- what technologies are involved.
 
-**Response:**  
-`A projected and fully customizable time portal can transform engineering education into an immersive PUBG-style battlefield experience from the comfort of home. In this environment, students can learn engineering concepts by entering a virtual battlefield where challenges, obstacles, and missions are designed around real technical problems. Instead of passively studying theory, learners actively apply concepts such as electronics, coding, sensors, robotics, mechanics, and system design to complete missions, solve problems, and progress through different levels. This approach makes engineering education more interactive, engaging, and practical by combining gaming, simulation, and hands-on problem-solving in a familiar and exciting format.`
+Technologically, the project is powered by a Raspberry Pi 4B acting as a local edge-processing hub to fuse multi-sensor data without requiring a cloud connection. The hardware stack integrates an MQ135 air quality sensor (interfaced safely to the Pi via a custom 10k/20k hardware voltage divider) and a DHT11 sensor for environmental monitoring, paired with an I2C-based MPU6050 6-DOF accelerometer for kinetic tracking. The system's logic is driven by Python and the Adafruit CircuitPython ecosystem, allowing the node to execute complex safety algorithms and trigger visual alerts in milliseconds.
 
 ---
 
@@ -99,15 +96,22 @@ List what inspired the project.
 
 | Source Type | Title / Link                                                        | What Inspired You                                                                         |
 | ----------- | ------------------------------------------------------------------- | ----------------------------------------------------------------------------------------- |
-| `[Video]`   | `https://www.instagram.com/reel/DW4CT7WCDry/?igsh=cXg3dzAxYmdncDBo` | `How projection mapping can be used to create interactive digital + physical experiences` |
+| Research Paper | `Real-Time Machine Learning-Based Driver Drowsiness Detection Using Visual Features` https://www.mdpi.com/2313-433X/9/5/91 | Inspired by the research on real-time drowsiness detection, I aimed to develop a preventative system that monitors the atmospheric and kinetic root causes of fatigue—such as $CO_2$ buildup and heat—rather than just the visual symptoms. |
 |             |                                                                     |                                                                                           |
 |             |                                                                     |                                                                                           |
 
 ## 2.2 Original Twist
 
-What makes your project original?
+While traditional vehicle safety systems (like OBD-II scanners or dashcams) are purely reactive—recording data after a mechanical failure or crash has already occurred—SafeDrive System is completely predictive and proactive.
 
-**Response:**  
+Our originality lies in shifting the focus from the machine's health to the driver's physiological state, using a lean edge-computing architecture.
+
+Here is what sets this project apart:
+
+1) Multi-Domain Sensor Fusion: We successfully bridged two completely different domains of data. By combining Environmental Life-Support metrics (Gas/Air Quality and Temperature) with Kinetic Physics (G-force and acceleration), the system doesn't just know how the car is moving; it understands the conditions causing the driver to move that way.
+2) Predictive Fatigue Modeling: Instead of using complex, expensive computer vision cameras to check if a driver's eyes are closing, we tackle the root cause of the drowsiness. By monitoring $CO_2$ buildup and heat stress, the system warns the driver to ventilate the cabin before the cognitive decline and microsleeps occur.
+3) 100% Edge-Processed & Zero Latency: In a life-safety application, milliseconds matter. By keeping all data processing strictly local on the Raspberry Pi 4B, we eliminated the need for cloud computing, Wi-Fi dependency, or database logging. The system provides instantaneous visual interventions with zero network latency.
+4) Scalable, Low-Overhead Architecture: Instead of relying on expensive, proprietary automotive diagnostic tools, we utilized accessible components integrated via custom signal-conditioning circuits. This proves the system can be mass-deployed across an entire commercial fleet at a fraction of the cost of traditional telematics, democratizing vehicle safety.  
 
 
 ---
@@ -116,8 +120,9 @@ What makes your project original?
 
 ## 3.1 User Journey 
 
-Describe exactly how a user will use the project.Make it a story
-**Response:**  
+Imagine Ashutosh, a driver embarking on a long evening commute after a tiring workday. As Ashutosh starts the car, the SafeDrive System—discreetly mounted on the dashboard—silently springs to life, its sensors immediately beginning to scan the cabin's "vitals."Halfway through the journey, the car windows are rolled up against the cold air, and the heater is humming. Ashutosh doesn't notice that the $CO_2$ levels are steadily rising and the cabin temperature has hit a stuffy 28°C. His eyes begin to feel heavy, a classic sign of early-stage drowsiness. Before Ashutosh even realizes he is at risk, the system's edge-processor correlates the air quality spike with the rising heat. Suddenly, a bright "DANGER: VENTILATE CABIN" alert flashes on the dashboard interface. Startled back into focus, Ashutosh rolls down the window, breathes in the fresh air, and feels instantly more alert.
+
+A few miles later, a distracted driver suddenly cuts into Ashutosh’s lane. Ashutosh reacts quickly, slamming on the brakes. The MPU6050 sensor detects the violent deceleration and the sudden spike in G-force. Even before the car has come to a complete halt, the system displays a "CRITICAL: HARSH BRAKING DETECTED" alert. This immediate feedback serves as a digital co-pilot, helping Alex remain aware of his driving dynamics and the cabin environment. Ashutosh reaches his destination safely, guided by a system that watched for the dangers he couldn't see.
 
                                                   |
 
@@ -129,18 +134,38 @@ Describe exactly how a user will use the project.Make it a story
 
 ## 4.1 Definition of “Usable”
 
+A "usable" version of the SafeDrive System is defined by its ability to operate as a passive, non-distracting co-pilot that provides high-confidence alerts. To meet this standard, the system must achieve:
+
+Glanceable UI: The output must be color-coded (Green/Yellow/Red) so the driver can understand the safety status in under 0.5 seconds without taking their eyes off the road for too long.
+
+Zero-Latency Intervention: The time between a sensor detecting a threshold breach (like a sudden 2G impact or a gas spike) and the visual alert appearing must be less than 200ms.
+
+Zero-Touch Operation: Once the vehicle starts, the system must initialize and begin monitoring automatically without requiring any manual calibration or user input.
 
 
 ## 4.2 Minimum Usable Version
 
-What is the smallest version of this project that still delivers the core experience?
+The Minimum Usable Version (MVP) is the smallest functional iteration that demonstrates "Multi-Domain Sensor Fusion." This includes:
 
-**Response:**  
+Core Hardware: Raspberry Pi 4B integrated with the MQ135 (via voltage divider) and the MPU6050.
 
+Primary Logic: A single Python script that reads the Digital Output of the gas sensor and the Acceleration Magnitude of the MPU6050.
+
+Basic Alert System: A terminal-based or simple HTML dashboard that toggles between "Safe" and "Warning" based on those two inputs.
+
+Power Stability: The system must be able to run off a standard 5V USB car charger/power bank without crashing.
 
 ## 4.3 Stretch Features
 
-What features are nice to have but not essential?
+While the core system focuses on real-time alerts, the following features would elevate the project from a prototype to a consumer-ready product:
+
+Auditory Alarms: Integration of a piezo buzzer to provide distinct "Beep" patterns for different threats (e.g., a long tone for toxic air, rapid pulses for harsh braking).
+
+Night Mode UI: An interface that automatically dims or switches to red-light tones during night-time driving to preserve the driver's night vision.
+
+Cloud-Sync Dashboard: A secondary Flask-based web interface that allows a passenger or remote fleet manager to view the vehicle's "vitals" over a local Wi-Fi or 4G hotspot.
+
+Historical Incident Snapshots: Capturing a 5-second "data snapshot" of all sensor values leading up to a harsh braking event to help the driver review their behavior later.
 
 
 ---
@@ -157,19 +182,19 @@ Check all that apply.
 
 - [x] Sensor-based
 
-- [x] App-connected
+- [ ] App-connected
 
 - [x] Motorized
 
 - [ ] Sound-based
 
-- [x] Light-based
+- [ ] Light-based
 
-- [x] Screen/UI-based
+- [ ] Screen/UI-based
 
-- [x] Fabricated structure
+- [ ] Fabricated structure
 
-- [x] Game logic based
+- [ ] Game logic based
 
 - [x] Installation
 
@@ -177,24 +202,30 @@ Check all that apply.
 
 ## 5.2 High-Level System Description
 
-Explain how the system works in simple terms.
+The SafeDrive System functions as an intelligent co-pilot that monitors the "health" of the vehicle's interior environment and the safety of its movement.
 
-Include:
+Input: The system continuously gathers data from three specialized sensors: the MQ135 (detecting $CO_2$, smoke, and alcohol vapors), the DHT11 (measuring cabin temperature and humidity), and the MPU6050 (tracking G-forces and sudden impacts).
 
-- input,
-- processing,
-- output,
-- physical structure,
-- app interaction if any.
+Processing: All data is fed into a Raspberry Pi 4B. The Pi runs a Python-based processing engine that uses "game logic" to treat the vehicle's safety like a status bar. It filters the noise, compensates for environmental shifts, and determines if the current conditions cross the safety thresholds.
 
-**Response:**  
+Output: The system provides immediate feedback through a Screen/UI-based dashboard and Light-based indicators (color-coded alerts). Additionally, it triggers a Motorized component (such as a cooling fan simulation) to provide physical feedback when danger is detected.
+
+Physical Structure: The components are housed in a fabricated enclosure designed to be mounted on a standard vehicle dashboard, ensuring sensors are positioned for optimal airflow and movement detection.
+
+App Interaction: The system hosts a local web server, allowing passengers or drivers to view a real-time App-connected dashboard on their mobile devices via Wi-Fi to monitor cabin "vitals" and history.
 
 ## 5.3 Input / Output Map
 
-| System Part                              | Type            | What It Does                                                               |
-
-
----
+| System Part | Type | What It Does |
+| :--- | :--- | :--- |
+| **MQ135 Gas Sensor** | **Input** | Detects $CO_2$ levels and toxic vapors to identify air quality risks. |
+| **MPU6050 Accelerometer** | **Input** | Measures kinetic forces to detect harsh braking or physical impacts. |
+| **DHT11 Sensor** | **Input** | Monitors cabin temperature to prevent heat-related driver fatigue. |
+| **Raspberry Pi 4B** | **Processor** | The central brain that fuses sensor data and executes safety logic. |
+| **Web Dashboard / LCD** | **Output** | Displays real-time safety status and color-coded warnings (Green/Red). |
+| **LED Indicators** | **Output** | Provides high-visibility light alerts when thresholds are breached. |
+| **Haptic Motor / Actuator** | **Output** | Provides physical (motorized) feedback/vibration to alert a drowsy driver. |
+| **Fabricated Enclosure** | **Structure** | Protects the electronics and secures the sensors for accurate readings. |---
 
 # 6. System Design, Sketches and Visual Planning 
 
