@@ -67,11 +67,10 @@ By the final review, this README should clearly show:
 | Shaunak Karambelkar   | Coding     | Hardware            | Coding            |
 | Muskan Jaiswal        | Debugging     | Hardware            | Material Handling, Hardware              |
 
-## 1.3 Project Name
+## 1.3 **SafeDrive System**
 
-**SafeDrive System**
 
-> *"Because Project-or"*
+
 
 ![SafeDrive System](https://github.com/user-attachments/assets/c64bfbd4-b3b7-43d9-83ad-c203a5aa11bc)
 
@@ -91,9 +90,15 @@ Technologically, the project is powered by a Raspberry Pi 4B acting as a local e
 
 ## 2.1 References
 
-| Source Type    | Title / Link                                                                                                                                 | What Inspired You                                                                                                                                                                                                                   |
-| -------------- | -------------------------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Research Paper | [Real-Time Machine Learning-Based Driver Drowsiness Detection Using Visual Features](https://www.mdpi.com/2313-433X/9/5/91)                  | Inspired by research on real-time drowsiness detection, we aimed to build a preventative system that monitors the atmospheric and kinetic root causes of fatigue — such as CO₂ buildup and heat — rather than just the visual symptoms. |
+## 2.1 References
+
+| Source Type | Title / Link | What Inspired You |
+| :--- | :--- | :--- |
+| Research Paper | [Real-Time Machine Learning-Based Driver Drowsiness Detection Using Visual Features](https://www.mdpi.com/2313-433X/9/5/91) | Inspired by research on real-time drowsiness detection, we aimed to build a preventative system that monitors the atmospheric and kinetic root causes of fatigue—such as CO₂ buildup and heat—rather than just the visual symptoms. |
+| Scientific Study | [Elevated Indoor Carbon Dioxide Impairs Decision-Making Performance](https://ehp.niehs.nih.gov/doi/10.1289/ehp.1104789) | Validated the core hypothesis of this project: even moderate CO₂ buildup directly causes cognitive decline and delayed reaction times, proving the need for a preventative cabin air monitor. |
+| Hardware Guide | [Adafruit MPU6050 6-DoF Accelerometer and Gyro Setup](https://learn.adafruit.com/mpu6050-6-dof-accelerometer-and-gyro) | Taught us how to capture and parse raw kinetic data over I2C, which inspired the "Harsh Braking" and physical impact detection mechanics using dynamic G-force thresholds. |
+| Engineering Tutorial | [SparkFun: Voltage Dividers and Logic Level Shifting](https://learn.sparkfun.com/tutorials/voltage-dividers/all) | Inspired the lean hardware engineering approach of building a custom 10kΩ/20kΩ voltage divider to safely bridge the 5V MQ135 sensor to the 3.3V Raspberry Pi without relying on pre-built modules. |
+| Software Docs | [Adafruit Blinka (CircuitPython for Raspberry Pi)](https://learn.adafruit.com/circuitpython-on-raspberrypi-linux/installing-circuitpython-on-raspberry-pi) | Provided the framework for our "Edge Computing" software architecture, showing how to rapidly fuse I2C sensor data and GPIO digital inputs into a single, zero-latency Python loop. |
 
 ## 2.2 Original Twist
 
