@@ -62,10 +62,10 @@ By the final review, this README should clearly show:
 
 | Name                  | Primary Role                  | Secondary Role    | Strengths Brought to the Project         |
 | --------------------- | ----------------------------- | ----------------- | ---------------------------------------- |
-| Hrishikesh Pandit     | Coding                        | Documentation     | Documentation, Software Architecture    |
-| Soham Pednekar        | Electronics      | Coding            | Material Handling, Hardware              |
-| Shaunak Karambelkar   | Coding     | Hardware            | Coding            |
-| Muskan Jaiswal        | Debugging     | Hardware            | Material Handling, Hardware              |
+| Hrishikesh Pandit     | Documentation                        | Coding     | Documentation, Software Architecture    |
+| Soham Pednekar        | Coding      | Documentation           | Frontend Devlopment              |
+| Shaunak Karambelkar   | Coding     | Hardware            | Management & Execution            |
+| Muskan Jaiswal        | Hardware     | Coding            | Material Handling, Hardware              |
 
 ## 1.3 **SafeDrive System**
 
@@ -88,7 +88,6 @@ Technologically, the project is powered by a Raspberry Pi 4B acting as a local e
 
 # 2. Inspiration
 
-## 2.1 References
 
 ## 2.1 References
 
@@ -138,17 +137,17 @@ A few miles later, a distracted driver suddenly cuts into Ashutosh's lane. Ashut
 
 A "usable" version of SafeDrive System is defined by its ability to operate as a passive, non-distracting co-pilot that provides high-confidence alerts. To meet this standard, the system must achieve:
 
-- **Glanceable UI:** The output must be color-coded (Green/Yellow/Red) so the driver can understand the safety status in under 0.5 seconds without taking their eyes off the road for too long.
+- **Glanceable UI:** The output must be visible and legible (user friendly) to the user.
 - **Zero-Latency Intervention:** The time between a sensor detecting a threshold breach (like a sudden 2G impact or a gas spike) and the visual alert appearing must be less than 200ms.
 - **Zero-Touch Operation:** Once the vehicle starts, the system must initialize and begin monitoring automatically without requiring any manual calibration or user input.
 
 ## 4.2 Minimum Usable Version
 
-The Minimum Usable Version (MVP) is the smallest functional iteration that demonstrates "Multi-Domain Sensor Fusion." This includes:
+The Minimum Usable Version (MUP) is the smallest functional iteration that demonstrates "Multi-Domain Sensor Fusion." This includes:
 
-- **Core Hardware:** Raspberry Pi 4B integrated with the MQ135 (via voltage divider) and the MPU6050.
-- **Primary Logic:** A single Python script that reads the Digital Output of the gas sensor and the Acceleration Magnitude of the MPU6050.
-- **Basic Alert System:** A terminal-based or simple HTML dashboard that toggles between "Safe" and "Warning" based on those two inputs.
+- **Core Hardware:** Raspberry Pi 4B integrated with the MQ135 (via voltage divider), DHT11 and MPU6050.
+- **Primary Logic:** A single Python script that reads the Digital Output of the gas sensor, temperature sensor and the Acceleration Magnitude of the MPU6050.
+- **Basic Alert System:** A terminal-based or simple HTML dashboard that toggles between "Safe" and "Warning" based on those three inputs.
 - **Power Stability:** The system must be able to run off a standard 5V USB car charger/power bank without crashing.
 
 ## 4.3 Stretch Features
@@ -185,11 +184,11 @@ The SafeDrive System functions as an intelligent co-pilot that monitors the "hea
 
 - **Processing:** All data is fed into a Raspberry Pi 4B. The Pi runs a Python-based processing engine that uses threshold-based logic to treat the vehicle's safety like a status bar. It filters noise, compensates for environmental shifts, and determines if current conditions cross safety thresholds.
 
-- **Output:** The system provides immediate feedback through a screen/UI-based dashboard and color-coded LED indicators (Green/Yellow/Red alerts). It also triggers a motorized actuator (cooling fan simulation) to provide physical feedback when danger is detected.
+- **Output:** The system provides immediate feedback through a screen/UI-based dashboard.
 
 - **Physical Structure:** Components are housed in a fabricated enclosure designed to be mounted on a standard vehicle dashboard, ensuring sensors are positioned for optimal airflow and movement detection.
 
-- **App Interaction:** The system hosts a local web server, allowing passengers or drivers to view a real-time dashboard on their mobile devices via Wi-Fi to monitor cabin "vitals" and history.
+- **Web Interface:** The system hosts a local web server, allowing passengers or drivers to view a real-time dashboard on their mobile devices via Wi-Fi to monitor cabin "vitals" and history.
 
 ## 5.3 Input / Output Map
 
@@ -200,9 +199,7 @@ The SafeDrive System functions as an intelligent co-pilot that monitors the "hea
 | DHT11 Sensor              | Input      | Monitors cabin temperature to prevent heat-related driver fatigue.        |
 | Raspberry Pi 4B           | Processor  | The central brain that fuses sensor data and executes safety logic.       |
 | Web Dashboard / LCD       | Output     | Displays real-time safety status and color-coded warnings (Green/Red).    |
-| LED Indicators            | Output     | Provides high-visibility light alerts when thresholds are breached.       |
-| Haptic Motor / Actuator   | Output     | Provides physical (motorized) feedback/vibration to alert a drowsy driver.|
-| Fabricated Enclosure      | Structure  | Protects the electronics and secures the sensors for accurate readings.   |
+
 
 ---
 
@@ -239,10 +236,7 @@ NA
 | MPU6050 Accelerometer  | 1        | Detect G-forces, harsh braking, and sudden impacts   |
 | 10kΩ Resistor          | 1        | Voltage divider (upper leg) for MQ135 analog output  |
 | 20kΩ Resistor          | 1        | Voltage divider (lower leg) for safe Pi GPIO input   |
-| LED Indicators (R/G/Y) | 3        | Visual color-coded safety status output              |
-| Haptic Motor / Fan     | 1        | Physical alert actuator for drowsiness warning       |
-| Power Bank (5V USB)    | 1        | Portable power source for Raspberry Pi               |
-| Fabricated Enclosure   | 1        | Dashboard-mountable housing for all components       |
+
 
 ## 7.2 Wiring Plan
 
@@ -334,14 +328,8 @@ All components share a **common ground** with the Raspberry Pi for stable operat
 | DHT11 Sensor                | 1        | No      | Yes          | 60                  | 3.3V/5V, single-wire               | Temperature and humidity for heat-fatigue correlation    |
 | MPU6050 Accelerometer (I2C) | 1        | No      | Yes          | 100                 | 6-DOF, I2C, 3.3V                   | Detects G-force for harsh braking / impact detection     |
 | 10kΩ Resistor               | 1        | Yes     | No           | 0                   | 1/4W                               | Voltage divider upper leg (MQ135 → Pi GPIO protection)   |
-| 20kΩ Resistor               | 1        | Yes     | No           | 0                   | 1/4W                               | Voltage divider lower leg                                |
-| LED (Red, Green, Yellow)    | 3        | Yes     | No           | 0                   | 5mm standard                       | Visual color-coded status indicators                     |
-| 220Ω Resistors (for LEDs)   | 3        | Yes     | No           | 0                   | 1/4W                               | Current limiting for LEDs on GPIO                        |
-| Small DC Fan / Haptic Motor | 1        | No      | Yes          | 80                  | 5V, ~100mA                         | Physical alert actuator for drowsiness warning           |
-| NPN Transistor (2N2222)     | 1        | Yes     | No           | 0                   | TO-92 package                      | Safe switching of motor/fan from GPIO pin                |
-| Jumper Wires + Breadboard   | 1 set    | Yes     | No           | 0                   | Male-female, male-male             | Prototyping connections                                  |
-| Fabricated Enclosure        | 1        | No      | Fabricate    | 150                 | Cardboard / 3D print / laser-cut   | Dashboard-mountable housing                              |
-| Power Bank (≥2A output)     | 1        | No      | Yes          | 0 (team-owned)      | 5V, 2A USB output                  | Portable, car-safe power source for Pi                   |
+| 20kΩ Resistor               | 1        | Yes     | No           | 0                   | 1/4W                               | Voltage divider lower leg                                |               |
+| Jumper Wires + Breadboard   | 1 set    | Yes     | No           | 0                   | Male-female, male-male             | Prototyping connections                                  |                 |
 
 ## 9.2 Material Justification
 
@@ -358,19 +346,16 @@ The **MPU6050** was chosen for its mature I2C library support in Python and its 
 | MQ135 Gas Sensor        | Core air quality detection              | robu.in        | Before Day 1 build          | Received  |
 | DHT11 Sensor            | Cabin temperature monitoring            | robu.in        | Before Day 1 build          | Received  |
 | MPU6050 Accelerometer   | Kinetic / G-force detection             | robu.in        | Before Day 1 build          | Received  |
-| DC Fan / Haptic Motor   | Physical alert actuator                 | Local store    | Before integration phase    | Received  |
-| Fabricated Enclosure    | Dashboard-mountable housing             | On campus      | Before final build          | Pending   |
+
 
 ## 9.4 Budget Summary
 
 | Budget Item           | Estimated Cost (₹) |
 | --------------------- | ------------------: |
-| Electronics (sensors) | 360                 |
-| Actuator (fan/motor)  | 80                  |
-| Fabrication materials | 150                 |
-| Purchased extras      | 0                   |
-| Contingency           | 300                 |
-| **Total**             | **890**             |
+| DHT11 |     45             |
+| MPU6050  | 150                  |
+| MQ135 | 95                 |
+| **Total**             | **280**             |
 
 ## 9.5 Budget Reflection
 
@@ -382,7 +367,7 @@ The project is designed to be low-cost by reusing the Raspberry Pi 4B and passiv
 
 ## 10.1 Team Working Agreement
 
-- **Task Division:** Tasks are divided by domain — Hrishikesh owns coding and documentation; Soham, Shaunak, and Muskan own hardware, wiring, and fabrication. All members participate in integration testing.
+- **Task Division:** Tasks are divided by domain — Hrishikesh and Soham managed the Documentation. Muskan and Shaunak handeled the coding andhardware implementation.
 - **Decision Making:** Simple majority for minor decisions; full consensus required for major pivots (e.g., dropping a sensor or changing architecture).
 - **Progress Checks:** 15-minute sync at the start of each 2-hour block to review task status and blockers.
 - **Delayed Tasks:** If a task is delayed, the owner flags it immediately so the team can re-prioritize. Documentation is updated to reflect the change.
@@ -394,13 +379,13 @@ The project is designed to be low-cost by reusing the Raspberry Pi 4B and passiv
 | ------- | ------------------------------------------ | ------------------ | --------------: | -------------- | ---------- | ----------- |
 | T1      | Finalize concept and sensor selection      | All                | 1               | Hour 1         | None       | Done        |
 | T2      | Complete BOM and identify purchases        | Hrishikesh         | 0.5             | Hour 1         | T1         | Done        |
-| T3      | Wire MQ135 (voltage divider) + test        | Soham              | 1.5             | Hour 3         | T1         | Done        |
-| T4      | Wire DHT11 + MPU6050 (I2C) + test          | Shaunak            | 1.5             | Hour 3         | T1         | Done        |
-| T5      | Write sensor reading Python scripts        | Hrishikesh         | 2               | Hour 4         | T3, T4     | Done        |
-| T6      | Write threshold/alert decision logic       | Hrishikesh         | 1.5             | Hour 5         | T5         | Done        |
-| T7      | Build Flask dashboard UI                   | Hrishikesh         | 2               | Hour 6         | T6         | Done        |
-| T8      | Wire LED indicators + haptic motor         | Muskan             | 1               | Hour 4         | T3         | Done        |
-| T9      | Fabricate and assemble enclosure           | Soham, Shaunak     | 2               | Hour 6         | T3, T4     | Done        |
+| T3      | MPU6050 (I2C) + test        | Shaunak              | 1.5             | Hour 3         | T1         | Done        |
+| T4      | Wire DHT11 + MQ135 + test          | Muskan            | 1.5             | Hour 3         | T1         | Done        |
+| T5      | Write sensor reading Python scripts        | Muskan,Shaunak,Soham         | 2               | Hour 4         | T3, T4     | Done        |
+| T6      | Write threshold/alert decision logic       | Soham        | 1.5             | Hour 5         | T5         | Done        |
+| T7      | Build Flask dashboard UI                   | Soham         | 2               | Hour 6         | T6         | Done        |
+| T8      | Integration of all 3 sensors         | Shaunak            | 1               | Hour 4         | T3         | Done        |
+| T9      | Assemble on dot board           | Muskan     | 2               | Hour 6         | T3, T4     | Done        |
 | T10     | System integration test                   | All                | 1.5             | Hour 7         | T7, T8, T9 | Done        |
 | T11     | Playtesting, bug fixes, UI polish          | All                | 1.5             | Hour 8         | T10        | Done        |
 | T12     | Final documentation and README update      | Hrishikesh         | 1               | End of Day     | T11        | Done        |
@@ -409,10 +394,10 @@ The project is designed to be low-cost by reusing the Raspberry Pi 4B and passiv
 
 | Area               | Main Owner          | Support Owner        |
 | ------------------ | ------------------- | -------------------- |
-| Concept            | All                 | —                    |
-| Electronics        | Soham, Shaunak      | Muskan               |
-| Coding             | Hrishikesh          | Soham                |
-| Mechanical Build   | Shaunak, Muskan     | Soham                |
+| Concept            | All                 | -                    |
+| Electronics        | Muskan, Shaunak      | Soham, Hrishikesh               |
+| Coding             | Soham, Muskan, Shaunak          | Hrishikesh                |
+| Mechanical Build   | Shaunak, Muskan     | Soham, Hrishikesh                |
 | Testing            | All                 | —                    |
 | Documentation      | Hrishikesh          | All                  |
 
@@ -428,7 +413,7 @@ Expected outcomes:
 
 - [x] Idea finalized
 - [x] Core interaction decided
-- [x] Sketches made
+- [ ] Sketches made
 - [x] BOM completed
 - [x] Purchase needs identified
 - [x] Key uncertainty identified (MQ135 voltage divider calibration)
@@ -440,7 +425,7 @@ Expected outcomes:
 
 - [x] Electronics tests completed
 - [x] Enclosure planning completed
-- [x] Flask UI started
+- [ ] Flask UI started
 - [x] Sensor wiring tested individually
 - [x] Main subsystems partially working
 
@@ -448,10 +433,11 @@ Expected outcomes:
 
 Expected outcomes:
 
-- [x] Physical enclosure built
-- [x] Electronics integrated into enclosure
+- [ ] Physical enclosure built(NA)
+- [ ] Electronics integrated into enclosure(NA)
 - [x] Code connected to hardware
-- [x] Flask dashboard live on local network
+- [x] Sketches made
+- [ ] Flask dashboard live on local network
 - [x] First fully functional version exists
 
 ### Bi-Hour 4 — Refine and Finish
@@ -461,6 +447,7 @@ Expected outcomes:
 - [x] Technical bugs reduced
 - [x] Playtesting completed
 - [x] Improvements made
+- [x] Flask dashboard live on local network
 - [x] Documentation completed
 - [x] Final build ready
 
@@ -468,10 +455,10 @@ Expected outcomes:
 
 | Day    | Planned Goal                                | What Actually Happened                                         | What Changed                                         | Next Steps                              |
 | ------ | ------------------------------------------- | -------------------------------------------------------------- | ---------------------------------------------------- | --------------------------------------- |
-| Day 1  | Sensor wiring + individual test scripts     | MQ135 voltage divider calibrated; all sensors reading          | Added rolling average filter for MQ135 noise         | Integrate all sensors into single script |
-| Day 2  | Full integration + Flask dashboard          | Flask dashboard working; haptic motor alert functional         | Replaced polling with WebSocket for lower UI latency | Enclosure assembly + playtesting        |
-| Day 3  | Enclosure assembly + final integration test | Enclosure assembled; full system mounted and functional        | Minor GPIO pin conflict resolved                     | Playtesting + documentation polish      |
-| Day 4  | Playtesting + documentation + submission    | Playtesting completed; final README updated; build photos added | —                                                    | Final submission                        |
+| Day 1  | Complete Sensor Integration + Flask Dashboard     | Individual Sensor calibration and testing + Building UI interface + Integrate all sensors into single script + Testing       | Minor GPIO pin conflict resolved  | Documentation
+| Day 2  | Documentation         | All logs reviewed | Git was updated | Final Submission        |
+| Day 3  | Submission | Presentation and explanation of Project        |  -  |  -
+| Day 4  | -    | - | —                                                    | -                        |
 
 ---
 
