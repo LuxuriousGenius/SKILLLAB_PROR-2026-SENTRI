@@ -65,7 +65,7 @@ By the final review, this README should clearly show:
 | Hrishikesh Pandit     | Documentation                        | Coding     | Documentation, Software Architecture    |
 | Soham Pednekar        | Coding      | Documentation           | Frontend Devlopment              |
 | Shaunak Karambelkar   | Coding     | Hardware            | Management & Execution            |
-| Muskan Jaiswal        | Hardware     | Coding            | Material Handling, Hardware              |
+| Muskan Jaiswal        | Hardware     | Coding            | Material Handling, Hardware, Operations              |
 
 ## 1.3 **SafeDrive System**
 
