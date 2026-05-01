@@ -468,12 +468,10 @@ Expected outcomes:
 
 | Risk                                                              | Type        | Likelihood | Impact | Mitigation Plan                                                                                         | Owner       |
 | ----------------------------------------------------------------- | ----------- | ---------- | ------ | ------------------------------------------------------------------------------------------------------- | ----------- |
-| MQ135 analog output exceeds 3.3V and damages Pi GPIO             | Technical   | High       | High   | Use 10kΩ/20kΩ voltage divider; verify with multimeter before connecting to Pi                           | Soham       |
-| MPU6050 I2C address conflict with other devices                   | Technical   | Low        | Medium | Confirm I2C address (0x68) with `i2cdetect`; no other I2C devices on bus                                | Hrishikesh  |
+| MQ135 analog output exceeds 3.3V and damages Pi GPIO             | Technical   | High       | High   | Use 10kΩ/20kΩ voltage divider; verify with multimeter before connecting to Pi                           | Shaunak       |
+| MPU6050 I2C address conflict with other devices                   | Technical   | Low        | Medium | Confirm I2C address (0x68) with `i2cdetect`; no other I2C devices on bus                                | Shaunak  |
 | DHT11 occasional read failures (known library issue)              | Technical   | Medium     | Low    | Wrap reads in try/except; use last valid reading on failure                                              | Hrishikesh  |
-| Power bank insufficient current causing Pi undervoltage           | Technical   | Medium     | High   | Use ≥2A output power bank; monitor Pi voltage indicator; test before final build                         | Muskan      |
-| Flask dashboard inaccessible if Pi IP changes                     | Technical   | Low        | Medium | Set static IP on Pi's Wi-Fi interface or use mDNS (`raspberrypi.local`)                                  | Hrishikesh  |
-| Enclosure dimensions don't fit all components                     | Mechanical  | Medium     | Medium | Measure all components before cutting/building; leave 10mm clearance margin                              | Shaunak     |
+| Flask dashboard inaccessible if Pi IP changes                     | Technical   | Low        | Medium | Set static IP on Pi's Wi-Fi interface or use mDNS (`raspberrypi.local`)                                  | Soham  |
 
 ## 12.2 Biggest Unknown Right Now
 
