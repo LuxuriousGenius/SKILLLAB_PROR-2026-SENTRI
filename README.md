@@ -451,7 +451,7 @@ Expected outcomes:
 - [x] Documentation completed
 - [x] Final build ready
 
-## 11.2 Update Log
+# 12 Update Log
 
 | Day    | Planned Goal                                | What Actually Happened                                         | What Changed                                         | Next Steps                              |
 | ------ | ------------------------------------------- | -------------------------------------------------------------- | ---------------------------------------------------- | --------------------------------------- |
@@ -462,9 +462,9 @@ Expected outcomes:
 
 ---
 
-# 12. Risks and Unknowns
+# 13. Risks and Unknowns
 
-## 12.1 Risk Register
+## 13.1 Risk Register
 
 | Risk                                                              | Type        | Likelihood | Impact | Mitigation Plan                                                                                         | Owner       |
 | ----------------------------------------------------------------- | ----------- | ---------- | ------ | ------------------------------------------------------------------------------------------------------- | ----------- |
@@ -473,15 +473,15 @@ Expected outcomes:
 | DHT11 occasional read failures (known library issue)              | Technical   | Medium     | Low    | Wrap reads in try/except; use last valid reading on failure                                              | Hrishikesh  |
 | Flask dashboard inaccessible if Pi IP changes                     | Technical   | Low        | Medium | Set static IP on Pi's Wi-Fi interface or use mDNS (`raspberrypi.local`)                                  | Soham  |
 
-## 12.2 Biggest Unknown Right Now
+## 13.2 Biggest Unknown Right Now
 
 The biggest uncertainty is **MQ135 calibration accuracy** in a real vehicle cabin environment. The MQ135 has a warm-up period (~24 hours for full accuracy), and its digital threshold is set by an onboard potentiometer. In the hackathon timeframe, we cannot fully calibrate for real CO₂ ppm values — so we are relying on the **relative change in analog voltage** and the **digital threshold trigger** as a proxy for dangerous air quality, rather than an absolute ppm reading.
 
 ---
 
-# 13. Testing
+# 14. Testing
 
-## 13.1 Technical Testing Plan
+## 14.1 Technical Testing Plan
 
 | What Needs Testing              | How You Will Test It                                                                          | Success Condition                                                              |
 | ------------------------------- | --------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------ |
@@ -492,7 +492,7 @@ The biggest uncertainty is **MQ135 calibration accuracy** in a real vehicle cabi
 | Flask dashboard accessibility   | Connect phone to Pi's Wi-Fi hotspot; open browser to Pi's IP:5000                            | Dashboard loads and updates in real time                                       |
 | Full system power stability     | Run system for 30 minutes on power bank; monitor for undervoltage warnings                    | No undervoltage events; system runs continuously without crash                 |
 
-## 13.2 Testing and Debugging Log
+## 14.2 Testing and Debugging Log
 
 | Date     | Problem Found                                       | Type        | What You Tried                                        | Result                          | Next Action                                 |
 | -------- | --------------------------------------------------- | ----------- | ----------------------------------------------------- | ------------------------------- | ------------------------------------------- |
@@ -501,7 +501,7 @@ The biggest uncertainty is **MQ135 calibration accuracy** in a real vehicle cabi
 | Day 2    | Flask dashboard lagging (1–2s update delay)         | Software    | Switched from polling to WebSocket (Flask-SocketIO)   | Update latency reduced to <200ms ✓ | Keep for final build                     |
 | Day 3    | GPIO pin conflict (LED pin used by SPI by default)  | Hardware    | Remapped LED to GPIO17 (confirmed free with pinout)   | Conflict resolved ✓             | Document final pin map                      |
 
-## 13.3 Playtesting Notes
+## 14.3 Playtesting Notes
 
 | Tester     | What They Did                                         | What Confused Them                                     | What They Enjoyed                                    | What We Will Change                                      |
 | ---------- | ----------------------------------------------------- | ------------------------------------------------------ | ---------------------------------------------------- | -------------------------------------------------------- |
@@ -510,80 +510,76 @@ The biggest uncertainty is **MQ135 calibration accuracy** in a real vehicle cabi
 
 ---
 
-# 14. Build Documentation
+# 15. Build Documentation
 
-## 14.1 Fabrication Process
+## 15.1 Fabrication Process
 
-**Design:** Component positions were sketched on paper, accounting for sensor placement — MQ135 and DHT11 positioned for maximum cabin airflow exposure; MPU6050 mounted flat to the Pi for accurate vehicle-axis alignment.
+**Design & Layout:** The initial prototyping phase focused on establishing functional electrical connections and verifying sensor data rather than creating a finalized enclosure. The sensors (DHT11, MQ135, and MPU6050) were grouped and arranged on a standard copper perfboard to act as a unified, standalone sensor module.
 
-**Cutting:** Enclosure panels were laser-cut from 3mm cardboard/MDF based on measured dimensions (16cm × 16cm × 8cm). Circular holes were cut for sensor heads and LED indicators.
+**Assembly:** The Raspberry Pi 4B was kept in a standard protective plastic casing to prevent accidental shorts on the benchtop. The sensors were placed onto the perfboard to keep them physically organized alongside the Pi. 
 
-**Assembly:** Raspberry Pi mounted on standoffs inside the enclosure. Sensors secured with hot glue to the panel cutouts. All wiring routed through cable channels to avoid mechanical stress on connections.
+**Wiring:** Point-to-point connections were established using standard colored Dupont jumper wires. Power (+5V and +3.3V), ground, and data lines were routed directly from the Raspberry Pi's GPIO header to the respective pins on the sensor breakout boards. 
 
-**Fastening:** Components held with M2.5 nylon standoffs (Pi) and hot glue (sensors). Enclosure panels joined with adhesive and reinforced at corners.
+**Mounting:** In this iteration, the setup operates as an open-air benchtop prototype. This allows for easy access to the GPIO pins for debugging, wire swapping, and voltage testing. Notably, the MPU6050 is mounted vertically on the perfboard rather than flat. 
 
-**Finishing:** Rough edges sanded. Enclosure spray-painted matte black for aesthetics and to reduce reflectivity on dashboard.
+**Current Status & Revisions:** This open-wire prototype is currently configured for software testing and calibration. Before deployment in a vehicle, the loose wiring will need to be replaced with soldered connections or a custom PCB shield, and the entire assembly must be placed in a rigid enclosure. Additionally, the MPU6050 will need to be securely fastened flat and aligned with the vehicle's longitudinal axis to ensure accurate accelerometer and gyroscope readings.
 
-**Revisions:** Initial enclosure was too shallow (6cm) to accommodate Pi + wiring clearance. Redesigned to 8cm height in Day 2. MPU6050 mounting position adjusted to align with vehicle longitudinal axis for accurate braking detection.
+## 15.2 Build Photos
 
-## 14.2 Build Photos
-
-![Build Photo 1](https://github.com/user-attachments/assets/74baa570-5770-483e-be6d-d2f03386e37c)
-
+![build](./images/build.jpeg)
 
 ---
 
-# 15. Final Outcome
+# 16. Final Outcome
 
-## 15.1 Final Description
+## 16.1 Final Description
 
-The final SafeDrive System is a fully functional edge-computing vehicle safety monitor. It reads real-time data from the MQ135 (air quality), DHT11 (temperature), and MPU6050 (kinetic forces) and fuses them through a Python decision engine running on the Raspberry Pi 4B. A color-coded Flask web dashboard (accessible via local Wi-Fi) and physical LED + haptic motor outputs provide immediate, glanceable alerts for three threat categories: toxic air quality, heat-induced fatigue risk, and harsh braking / impact events.
+The current iteration of the SafeDrive System is a fully functional benchtop proof-of-concept for an edge-computing vehicle safety monitor. It successfully reads real-time data from the open-air MQ135 (air quality), DHT11 (temperature), and MPU6050 (kinetic forces) sensors and fuses them through a Python decision engine running on the Raspberry Pi 4B. Currently, immediate, glanceable alerts for three threat categories—toxic air quality, heat-induced fatigue risk, and harsh braking/impact events—are provided through a color-coded Flask web dashboard accessible via local Wi-Fi. 
 
-## 15.2 What Works Well
+## 16.2 What Works Well
 
-- Multi-sensor fusion working in real time with <200ms alert latency
-- Voltage divider successfully protects Pi GPIO from MQ135 5V output
-- Flask dashboard accessible from mobile device on local network
-- Haptic motor provides distinctive physical feedback on Critical alerts
-- System boots and begins monitoring automatically without user input
+- Multi-sensor fusion working in real time with <200ms alert latency on the web interface.
+- Voltage divider circuit successfully protects the Pi's 3.3V GPIO from the MQ135's 5V output.
+- Flask dashboard is highly responsive and easily accessible from a laptop on the local network.
+- The software stack initializes and begins monitoring automatically upon booting the Pi.
 
-## 15.3 What Still Needs Improvement
+## 16.3 What Still Needs Improvement
 
-- MQ135 requires longer warm-up for calibrated ppm readings — currently uses relative thresholds
-- Enclosure mounting solution for dashboard not yet production-grade (adhesive strips)
-- Night mode UI and auditory buzzer alerts (stretch features) not yet implemented
+- **Hardware Integration:** The system needs to transition from loose jumper wires on a perfboard to a soldered custom PCB shield, and be housed in a rigid, vehicle-safe enclosure.
+- **Physical Alerts:** Planned physical outputs (LEDs and haptic motors) need to be wired and integrated alongside the web dashboard.
+- **Sensor Calibration:** The MQ135 requires a longer warm-up period for calibrated ppm readings; it currently relies on relative threshold changes.
+- **Software Features:** Night mode UI and auditory buzzer alerts (stretch features) are not yet implemented.
 
-## 15.4 What Changed From the Original Plan
+## 16.4 What Changed From the Original Plan
 
-The original plan included a buzzer for auditory alerts, but this was deprioritized in favour of polishing the haptic motor and Flask dashboard within the time constraint. The Flask UI was upgraded from a simple polling page to a WebSocket-based real-time interface after playtesting revealed the polling delay was noticeable and distracting.
-
----
-
-# 16. Reflection
-
-## 16.1 Team Reflection
-
-The team worked well together, with clear role separation between software and hardware keeping tasks parallel. The biggest time sink was the MQ135 voltage divider — we had not anticipated needing signal conditioning hardware, which required a mid-session redesign. Documentation was kept current throughout, which made the final writeup straightforward. Time management was strong overall; no task missed its target by more than 30 minutes.
-
-## 16.2 Technical Reflection
-
-- **Electronics:** Learned that sensor modules designed for Arduino (5V logic) require level shifting before connecting to Raspberry Pi GPIO (3.3V). Voltage dividers are a simple, reliable solution.
-- **Coding:** Flask-SocketIO significantly improved UI responsiveness over standard HTTP polling. Rolling averages are essential for noisy analog sensors like the MQ135.
-- **Integration:** I2C bus management is straightforward on Pi with `smbus2`, but pin conflicts with SPI/UART defaults require careful GPIO mapping before wiring.
-
-## 16.3 Design Reflection
-
-- **Clarity:** Color-coding (Green/Yellow/Red) proved immediately intuitive for all playtesters — no explanation needed for the status at a glance.
-- **Physical Interaction:** The haptic motor alert was the most positively received output — users noticed it even when not looking at the screen, validating the multi-modal alert design.
-- **Iteration:** Moving from a terminal-only alert to a web dashboard mid-build was the right call — it dramatically improved the "product feel" of the prototype.
-
-## 16.4 If You Had One More Hour
-
-We would implement the **auditory buzzer alert** with distinct patterns per threat type (long tone for air quality, rapid pulse for braking) and add **auto-logging of incident snapshots** — a 5-second data buffer captured before and after each Critical event, saved to a CSV for driver review.
+The original plan heavily featured physical outputs (LEDs, haptic motors, and a buzzer for auditory alerts). However, these were deprioritized during the benchtop phase in favor of polishing the Flask dashboard within our time constraints. The Flask UI was upgraded from a simple polling page to a WebSocket-based real-time interface after early testing revealed the HTTP polling delay was noticeable and distracting.
 
 ---
 
-# 17. Final Submission Checklist
+# 17. Reflection
+
+## 17.1 Team Reflection
+
+The team worked well together, with clear role separation between software and hardware keeping tasks parallel. The biggest time sink was the MQ135 voltage divider—we had not anticipated needing signal conditioning hardware, which required a mid-session circuit redesign. Documentation was kept current throughout, which made the final writeup straightforward. Time management was strong overall; no task missed its target by more than 30 minutes.
+
+## 17.2 Technical Reflection
+
+- **Electronics:** Learned that sensor modules designed for Arduino (5V logic) require level shifting before connecting to Raspberry Pi GPIO (3.3V). Voltage dividers proved to be a simple, reliable solution for this.
+- **Coding:** Flask-SocketIO significantly improved UI responsiveness over standard HTTP polling. Furthermore, rolling averages are essential for stabilizing noisy analog sensors like the MQ135.
+- **Integration:** I2C bus management is straightforward on the Pi with `smbus2`, but pin conflicts with SPI/UART defaults require careful GPIO mapping before wiring.
+
+## 17.3 Design Reflection
+
+- **User Interaction:** With physical hardware indicators delayed, the color-coded visual alerts on the Flask dashboard became the primary interaction point. It was positively received during testing, validating our multi-modal alert design strategy.
+- **Iteration:** Moving from a terminal-only data output to a dedicated web dashboard mid-build was the right call—it dramatically improved the "product feel" of the prototype and made debugging much easier.
+
+## 17.4 If You Had One More Hour
+
+If we had one more hour, our immediate priority would be soldering the loose perfboard connections into a permanent circuit and mounting it within a physical enclosure. On the software side, we would add **auto-logging of incident snapshots**—a 5-second data buffer captured before and after each critical event, saved to a CSV for driver review—and implement the distinct auditory buzzer alerts.
+
+---
+
+# 18. Final Submission Checklist
 
 Before submission, confirm that:
 
