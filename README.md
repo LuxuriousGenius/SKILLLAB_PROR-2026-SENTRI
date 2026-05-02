@@ -234,9 +234,6 @@ The SafeDrive System functions as an intelligent co-pilot that monitors the "hea
 | MQ135 Gas Sensor       | 1        | Detect CO₂, alcohol vapors, and toxic gases          |
 | DHT11 Sensor           | 1        | Monitor cabin temperature and humidity               |
 | MPU6050 Accelerometer  | 1        | Detect G-forces, harsh braking, and sudden impacts   |
-| 10kΩ Resistor          | 1        | Voltage divider (upper leg) for MQ135 analog output  |
-| 20kΩ Resistor          | 1        | Voltage divider (lower leg) for safe Pi GPIO input   |
-
 
 ## 7.2 Wiring Plan
 
@@ -245,8 +242,7 @@ The **Raspberry Pi 4B** is the central hub for all connections:
 - **MQ135 Gas Sensor:** The analog output of the MQ135 is stepped down from 5V to ~3.3V using a custom resistor voltage divider (10kΩ upper, 20kΩ lower) before connecting to a GPIO pin. The digital output (DO) pin connects directly to a GPIO input pin.
 - **DHT11 Sensor:** Data pin connects directly to a GPIO pin (e.g., GPIO4). Powered from the Pi's 3.3V rail.
 - **MPU6050:** Connected via I2C bus — SDA to GPIO2 (Pin 3), SCL to GPIO3 (Pin 5). Powered from the 3.3V rail.
-- **LED Indicators:** Each LED connects through a 220Ω current-limiting resistor to individual GPIO output pins.
-- **Haptic Motor / Fan:** Driven via a transistor (NPN BJT) or small MOSFET to avoid overcurrenting the GPIO pins, controlled by a PWM-capable GPIO output.
+
 
 All components share a **common ground** with the Raspberry Pi for stable operation.
 
@@ -261,7 +257,7 @@ All components share a **common ground** with the Raspberry Pi for stable operat
 | Power source     | Standard 5V USB power bank or vehicle USB car charger                                                                                                      |
 | Voltage required | 5V for Raspberry Pi 4B; 3.3V for sensors (regulated by Pi's onboard regulator); 5V rail for MQ135 heater                                                  |
 | Current concerns | MQ135 heater draws ~150mA; MPU6050 draws ~3.9mA; total system draw ~800mA–1A. Power bank must supply ≥2A to ensure stability.                             |
-| Safety concerns  | Voltage divider is critical — connecting MQ135 analog output directly to Pi GPIO (3.3V max) without it will damage the Pi. All wiring secured in enclosure. |
+| Safety concerns  | Thermal Hazard: The MQ135 gas sensor relies on an internal heating element to function correctly. The metallic mesh casing will become noticeably warm (and potentially hot) during operation. Avoid touching the sensor head while the system is active. |
 
 ---
 
@@ -275,39 +271,40 @@ All components share a **common ground** with the Raspberry Pi for stable operat
 | Adafruit CircuitPython   | Sensor libraries (DHT11, MPU6050, MQ135 GPIO)                  |
 | Flask                    | Local web server for real-time dashboard UI                    |
 | HTML / CSS / JavaScript  | Front-end dashboard with color-coded status display            |
-| RPi.GPIO / gpiozero      | GPIO control for LEDs and haptic motor output                  |
+| RPi.GPIO                 | To access GPIO pins                                            |
 
 ## 8.2 Software Logic / Algorithm
 
 - **Startup Behavior:**
-  The Python script initializes all sensor libraries and GPIO pins on boot (via `systemd` service or `rc.local`). It verifies sensor connectivity over I2C and GPIO. If a sensor fails to initialize, it logs a warning and continues with remaining sensors.
+  The Python script initializes all sensor libraries and GPIO pins upon boot. It verifies sensor connectivity over I2C (`smbus2` for the MPU6050) and standard GPIO (DHT11, MQ135). If a sensor fails to initialize, the system logs a warning to the console and continues monitoring with the active sensors.
 
 - **Input Handling:**
-  The main loop polls all three sensors at a configurable interval (default: 500ms). DHT11 and MQ135 readings are averaged over a rolling window to reduce noise.
+  The main loop polls all three sensors at a high-frequency interval (default: 500ms). To ensure stability and mitigate analog noise (especially from the open-air MQ135), readings are smoothed using a rolling average window before being evaluated by the decision engine.
 
 - **Sensor Reading:**
-  - MQ135 digital output (HIGH = gas threshold exceeded) and analog voltage (via voltage divider) are read each cycle.
-  - DHT11 returns temperature (°C) and humidity (%).
-  - MPU6050 returns X, Y, Z acceleration values; acceleration magnitude `|a| = √(ax² + ay² + az²)` is computed each cycle.
+  - **MQ135:** Reads both the digital state (threshold crossed) and the analog voltage (stepped down safely to 3.3V via the 10kΩ/20kΩ voltage divider).
+  - **DHT11:** Returns ambient temperature (°C) and relative humidity (%).
+  - **MPU6050:** Captures raw X, Y, and Z acceleration vectors. The total acceleration magnitude ($|a| = \sqrt{a_x^2 + a_y^2 + a_z^2}$) is computed each cycle to isolate true kinetic events from directional noise.
 
 - **Decision Logic:**
-  Thresholds are applied:
-  - CO₂ / Gas: MQ135 DO = HIGH → Warning; analog voltage above secondary threshold → Critical.
-  - Temperature: >27°C → Warning; >32°C → Critical.
-  - G-Force magnitude: >1.5G → Harsh braking / impact alert.
-  - Combined: CO₂ Warning + Temperature Warning simultaneously → "VENTILATE CABIN" alert.
+  The engine evaluates the smoothed data against predefined safety thresholds:
+  - **Air Quality:** MQ135 digital threshold triggered → Warning; analog voltage exceeds secondary high-concentration threshold → Critical.
+  - **Cabin Temperature:** >27°C → Warning; >32°C → Critical.
+  - **Kinetic Impact:** G-Force magnitude >1.5G → Critical (Harsh braking / impact alert).
+  - **Sensor Fusion:** CO₂ Warning + Temperature Warning simultaneously → Upgraded to "VENTILATE CABIN" Critical Alert.
 
-- **Output Behavior:**
-  - Green LED on: All safe.
-  - Yellow LED on: One parameter in Warning range.
-  - Red LED on + haptic pulse: Critical threshold breached. Alert displayed on dashboard.
-  - Flask dashboard updates via WebSocket or polling at 1Hz.
+- **Output Behavior (Virtual UI):**
+  *(Note: Physical LED and haptic outputs are slated for the final enclosure build. In the current prototype, all output is routed to the web interface.)*
+  - **Normal State:** Web dashboard indicators display green (All safe).
+  - **Warning State:** Specific sensor modules turn yellow on the dashboard.
+  - **Critical State:** Dashboard modules turn red with a high-priority on-screen text alert.
+  - Updates are pushed instantaneously to the UI via WebSockets.
 
 - **Communication Logic:**
-  Flask serves a local web page on port 5000. Any device on the same Wi-Fi network can view the live dashboard.
+  A Flask-SocketIO server hosts the local web dashboard on port 5000. This allows any smartphone or laptop on the same local Wi-Fi network to view the real-time, low-latency (<200ms) telemetry stream without relying on slower HTTP polling.
 
 - **Reset Behavior:**
-  Alerts auto-clear if sensor readings return below thresholds for a sustained 5-second window. No manual reset required.
+  The system utilizes an auto-clearing mechanism. Alerts automatically resolve and return to the "Normal" state once sensor readings drop back below the designated thresholds for a sustained 5-second buffer window. No manual user reset is required.
 
 
 ## 8.3 Code Flowchart
@@ -326,9 +323,7 @@ All components share a **common ground** with the Raspberry Pi for stable operat
 | Raspberry Pi 4B             | 1        | Yes     | No           | 0                   | 4GB RAM, 40-pin GPIO                | Edge processing hub; runs Python, Flask, I2C             |
 | MQ135 Gas Sensor Module     | 1        | No      | Yes          | 120                 | Analog + Digital output, 5V        | Detects CO₂, alcohol, smoke — key drowsiness indicator   |
 | DHT11 Sensor                | 1        | No      | Yes          | 60                  | 3.3V/5V, single-wire               | Temperature and humidity for heat-fatigue correlation    |
-| MPU6050 Accelerometer (I2C) | 1        | No      | Yes          | 100                 | 6-DOF, I2C, 3.3V                   | Detects G-force for harsh braking / impact detection     |
-| 10kΩ Resistor               | 1        | Yes     | No           | 0                   | 1/4W                               | Voltage divider upper leg (MQ135 → Pi GPIO protection)   |
-| 20kΩ Resistor               | 1        | Yes     | No           | 0                   | 1/4W                               | Voltage divider lower leg                                |               |
+| MPU6050 Accelerometer (I2C) | 1        | No      | Yes          | 100                 | 6-DOF, I2C, 3.3V                   | Detects G-force for harsh braking / impact detection     |                              |               |
 | Jumper Wires + Breadboard   | 1 set    | Yes     | No           | 0                   | Male-female, male-male             | Prototyping connections                                  |                 |
 
 ## 9.2 Material Justification
@@ -338,6 +333,8 @@ The **Raspberry Pi 4B** was chosen over microcontrollers like ESP32 because the 
 The **MQ135** was selected over more expensive CO₂ sensors because it provides a reliable digital threshold output ideal for binary "safe/unsafe" alerting without requiring complex ADC calibration. The voltage divider is a low-cost, safe solution to interface its 5V analog output with the Pi's 3.3V-tolerant GPIO.
 
 The **MPU6050** was chosen for its mature I2C library support in Python and its ability to provide 6-DOF data needed to differentiate harsh braking (longitudinal G) from bumpy roads (vertical Z-axis noise).
+
+The **DHT11** was selected over higher-precision alternatives (like the DHT22 or BME280) because it provides a highly cost-effective and reliable baseline for monitoring ambient cabin temperature and humidity—critical metrics for predicting heat-induced driver drowsiness.
 
 ## 9.3 Items to Procure
 
@@ -468,9 +465,8 @@ Expected outcomes:
 
 | Risk                                                              | Type        | Likelihood | Impact | Mitigation Plan                                                                                         | Owner       |
 | ----------------------------------------------------------------- | ----------- | ---------- | ------ | ------------------------------------------------------------------------------------------------------- | ----------- |
-| MQ135 analog output exceeds 3.3V and damages Pi GPIO             | Technical   | High       | High   | Use 10kΩ/20kΩ voltage divider; verify with multimeter before connecting to Pi                           | Shaunak       |
 | MPU6050 I2C address conflict with other devices                   | Technical   | Low        | Medium | Confirm I2C address (0x68) with `i2cdetect`; no other I2C devices on bus                                | Shaunak  |
-| DHT11 occasional read failures (known library issue)              | Technical   | Medium     | Low    | Wrap reads in try/except; use last valid reading on failure                                              | Hrishikesh  |
+| DHT11 occasional read failures (known library issue)              | Technical   | Medium     | Low    | Wrap reads in try/except; use last valid reading on failure                                              | Muskan  |
 | Flask dashboard inaccessible if Pi IP changes                     | Technical   | Low        | Medium | Set static IP on Pi's Wi-Fi interface or use mDNS (`raspberrypi.local`)                                  | Soham  |
 
 ## 13.2 Biggest Unknown Right Now
@@ -527,6 +523,8 @@ The biggest uncertainty is **MQ135 calibration accuracy** in a real vehicle cabi
 ## 15.2 Build Photos
 
 ![build](./images/build.jpeg)
+
+![build3](./images/build3.jpeg)
 
 ---
 
