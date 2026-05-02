@@ -1,0 +1,250 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>SafeDrive VCU | HUD</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        :root {
+            --bg: #030712; --card: #111827; --accent: #3b82f6;
+            --danger: #ef4444; --success: #10b981; --border: #1f2937; --text: #f9fafb;
+        }
+        body {
+            background: var(--bg); color: var(--text); font-family: 'Inter', sans-serif;
+            margin: 0; padding: 20px; display: flex; gap: 20px; height: 100vh; box-sizing: border-box; overflow: hidden;
+        }
+        .dashboard { flex: 1; display: flex; flex-direction: column; gap: 15px; height: 100%; }
+        .side-panel { width: 320px; display: flex; flex-direction: column; gap: 15px; height: 100%; }
+
+        .top-row { display: grid; grid-template-columns: repeat(4, 1fr); gap: 15px; }
+        .bottom-row { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; flex-grow: 1; }
+
+        .card {
+            background: var(--card); border: 1px solid var(--border); border-radius: 8px;
+            padding: 15px; position: relative; overflow: hidden; display: flex; flex-direction: column;
+            box-sizing: border-box;
+        }
+        .v-bar { position: absolute; left: 0; top: 0; bottom: 0; width: 6px; background: var(--success); transition: 0.3s; }
+        .v-bar.unsafe { background: var(--danger); }
+
+        .label { font-size: 0.7rem; color: #64748b; font-weight: 700; text-transform: uppercase; letter-spacing: 1px; }
+        .value { font-size: 1.8rem; font-weight: 800; margin-top: 10px; }
+
+        #notification-zone {
+            position: fixed; top: 20px; left: 50%; transform: translateX(-50%);
+            z-index: 9999; display: flex; flex-direction: column; gap: 10px; pointer-events: none;
+        }
+        .toast {
+            background: var(--danger); color: white; padding: 12px 24px; border-radius: 8px;
+            font-size: 0.9rem; font-weight: 800; box-shadow: 0 10px 25px rgba(239, 68, 68, 0.4);
+            animation: slideDown 0.3s ease-out; border: 1px solid rgba(255,255,255,0.2);
+            pointer-events: auto;
+        }
+        @keyframes slideDown { from { transform: translateY(-100%); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+
+        .graph-card { flex-grow: 2; min-height: 0; display: flex; flex-direction: column; }
+        .chart-container { flex-grow: 1; width: 100%; min-height: 0; position: relative; }
+        canvas { width: 100% !important; height: 100% !important; }
+
+        .aqi-bar-container { height: 10px; border-radius: 5px; display: flex; position: relative; margin-top: 20px; width: 100%; }
+        .aqi-segment { height: 100%; flex: 1; }
+        .aqi-ptr { position: absolute; top: -5px; width: 12px; height: 20px; background: white; border: 2px solid var(--bg); border-radius: 10px; transition: left 0.5s ease; z-index: 10; }
+
+        .log-container { flex: 1; overflow-y: auto; background: #000; border-radius: 6px; padding: 10px; font-family: monospace; font-size: 0.7rem; margin-top: 10px; }
+        .config-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin-top: 10px; }
+        input { background: #000; border: 1px solid #334155; color: white; padding: 8px; border-radius: 4px; width: 100%; box-sizing: border-box; }
+        .btn-primary { background: var(--accent); color: white; border: none; padding: 12px; border-radius: 4px; cursor: pointer; font-weight: bold; width: 100%; margin-top: auto; }
+    </style>
+</head>
+<body>
+    <div id="notification-zone"></div>
+
+    <div class="dashboard">
+        <div style="display: flex; justify-content: space-between; align-items: center;">
+            <h2 style="margin:0">SAFEDRIVE <span style="color:var(--accent)">VCU</span></h2>
+            <button onclick="generateReport()" style="background:transparent; border:1px solid var(--border); color:#64748b; padding:8px 16px; border-radius:4px; cursor:pointer; font-size:0.7rem; font-weight:bold;">GENERATE REPORT</button>
+        </div>
+
+        <div class="top-row">
+            <div class="card"><div id="risk-bar" class="v-bar"></div><div class="label">Drowsiness Risk</div><div class="value" id="risk-val">--%</div></div>
+            <div class="card"><div id="temp-bar" class="v-bar"></div><div class="label">Temperature</div><div class="value" id="temp-val">--°C</div></div>
+            <div class="card"><div id="hum-bar" class="v-bar"></div><div class="label">Humidity</div><div class="value" id="hum-val">--%</div></div>
+            <div class="card"><div id="sys-bar" class="v-bar"></div><div class="label">Status</div><div class="value" id="sys-status" style="font-size:1.1rem;">WAITING</div></div>
+        </div>
+
+        <div class="card graph-card">
+            <div class="label">Acceleration History (X, Y, Z)</div>
+            <div class="chart-container"><canvas id="accelChart"></canvas></div>
+        </div>
+
+        <div class="bottom-row">
+            <div class="card">
+                <div class="label">AQI Scale</div>
+                <div style="display:flex; justify-content:space-between; align-items:center; margin-top:10px;">
+                    <div id="aqi-val" style="font-size:3rem; font-weight:800;">--</div>
+                    <div id="smoke-badge" style="padding:4px 12px; border-radius:4px; font-weight:800; font-size:0.7rem; border:1px solid var(--success); color:var(--success);">SAFE</div>
+                </div>
+                <div class="aqi-bar-container">
+                    <div class="aqi-segment" style="background:#22c55e;"></div>
+                    <div class="aqi-segment" style="background:#eab308;"></div>
+                    <div class="aqi-segment" style="background:#f97316;"></div>
+                    <div class="aqi-segment" style="background:#ec4899;"></div>
+                    <div class="aqi-segment" style="background:#be123c;"></div>
+                    <div id="aqi-pointer" class="aqi-ptr" style="left:0%;"></div>
+                </div>
+            </div>
+
+            <div class="card">
+                <div class="label">VCU Configuration</div>
+                <div class="config-grid">
+                    <div><span class="label" style="font-size:0.5rem;">X</span><input type="number" id="thr-accel-x"></div>
+                    <div><span class="label" style="font-size:0.5rem;">Y</span><input type="number" id="thr-accel-y"></div>
+                    <div><span class="label" style="font-size:0.5rem;">Z</span><input type="number" id="thr-accel-z"></div>
+                    <div><span class="label" style="font-size:0.5rem;">Temp</span><input type="number" id="thr-temp"></div>
+                    <div><span class="label" style="font-size:0.5rem;">Hum</span><input type="number" id="thr-humidity"></div>
+                    <div><span class="label" style="font-size:0.5rem;">AQI</span><input type="number" id="thr-aqi"></div>
+                </div>
+                <button class="btn-primary" onclick="applySettings()">APPLY THRESHOLDS</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="side-panel">
+        <div class="card" style="text-align:center;"><div class="label">System Time</div><div id="clock" style="font-size:1.4rem; font-weight:800; font-family:monospace;">--:--:--</div></div>
+        <div class="card" style="flex:1;"><div class="label">Alert Log</div><div id="log" class="log-container"></div></div>
+    </div>
+
+<script>
+    let historyLog = []; // Used for report generation
+    let thresholdsInitialized = false;
+    let activeToasts = new Set();
+
+    const accelChart = new Chart(document.getElementById('accelChart'), {
+        type: 'line',
+        data: {
+            labels: Array(60).fill(''),
+            datasets: [
+                { label: 'X', borderColor: '#3b82f6', data: [], pointRadius: 0, tension: 0.3 },
+                { label: 'Y', borderColor: '#10b981', data: [], pointRadius: 0, tension: 0.3 },
+                { label: 'Z', borderColor: '#f59e0b', data: [], pointRadius: 0, tension: 0.3 }
+            ]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            animation: false,
+            plugins: { legend: { display: false } },
+            scales: {
+                y: { min: -1.5, max: 1.5, grid: { color: '#1e293b' }, ticks: { color: '#64748b' } },
+                x: { display: false }
+            }
+        }
+    });
+
+    function showToast(msg) {
+        if(activeToasts.has(msg)) return;
+        const zone = document.getElementById('notification-zone');
+        const toast = document.createElement('div');
+        toast.className = 'toast';
+        toast.innerHTML = `⚠️ ${msg}`;
+        zone.appendChild(toast);
+        activeToasts.add(msg);
+
+        // Also add to Alert Log automatically
+        addLog(msg, "danger");
+
+        setTimeout(() => {
+            toast.style.opacity = '0';
+            setTimeout(() => { toast.remove(); activeToasts.delete(msg); }, 300);
+        }, 4000);
+    }
+
+    function addLog(msg, type="info") {
+        const logEl = document.getElementById('log');
+        const div = document.createElement('div');
+        div.style.color = type === "danger" ? "var(--danger)" : "var(--accent)";
+        div.style.paddingBottom = "4px";
+        div.innerText = `[${new Date().toLocaleTimeString([],{hour12:false})}] ${msg}`;
+        logEl.prepend(div);
+    }
+
+    // FIX: Added Report Generation Function
+    function generateReport() {
+        if (historyLog.length === 0) {
+            alert("No data collected yet to generate a report.");
+            return;
+        }
+        let csvContent = "data:text/csv;charset=utf-8,Timestamp,Risk,Temp,Humidity,AQI,AccelX,AccelY,AccelZ\n";
+        historyLog.forEach(row => {
+            csvContent += `${row.timestamp},${row.risk},${row.temp},${row.humidity},${row.aqi},${row.accel_x},${row.accel_y},${row.accel_z}\n`;
+        });
+        const encodedUri = encodeURI(csvContent);
+        const link = document.createElement("a");
+        link.setAttribute("href", encodedUri);
+        link.setAttribute("download", "SafeDrive_VCU_Report.csv");
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        addLog("Report Downloaded Successfully", "info");
+    }
+
+    async function fetchData() {
+        try {
+            const res = await fetch('/api/data');
+            const d = await res.json();
+
+            // Populate history log for report
+            historyLog.push({...d});
+            if(historyLog.length > 500) historyLog.shift(); // Keep last 500 records
+
+            if (!thresholdsInitialized) {
+                ["accel-x", "accel-y", "accel-z", "temp", "humidity", "aqi"].forEach(id => {
+                    document.getElementById(`thr-${id}`).value = d.thresholds[id.replace("-","_")];
+                });
+                thresholdsInitialized = true;
+            }
+
+            document.getElementById('sys-status').innerText = "LIVE";
+            document.getElementById('risk-val').innerText = d.risk + "%";
+            document.getElementById('temp-val').innerText = d.temp + "°C";
+            document.getElementById('hum-val').innerText = d.humidity + "%";
+            document.getElementById('aqi-val').innerText = Math.round(d.aqi);
+            document.getElementById('clock').innerText = d.timestamp;
+
+            // Threshold Checks & Alert Logic
+            if (d.risk > 75) showToast("CRITICAL DROWSINESS ALERT");
+            if (d.temp > d.thresholds.temp) showToast("OVERHEAT DETECTED");
+            if (d.aqi > d.thresholds.aqi) showToast("POOR AIR QUALITY DETECTED");
+
+            // UI Bar updates
+            document.getElementById('risk-bar').className = d.risk > 75 ? "v-bar unsafe" : "v-bar";
+            document.getElementById('temp-bar').className = d.temp > d.thresholds.temp ? "v-bar unsafe" : "v-bar";
+            document.getElementById('aqi-pointer').style.left = Math.min((d.aqi / 100) * 100, 95) + "%";
+
+            accelChart.data.datasets[0].data.push(d.accel_x);
+            accelChart.data.datasets[1].data.push(d.accel_y);
+            accelChart.data.datasets[2].data.push(d.accel_z);
+            if(accelChart.data.datasets[0].data.length > 60) accelChart.data.datasets.forEach(ds => ds.data.shift());
+            accelChart.update('none');
+        } catch(e) {
+            console.error("Fetch Error:", e);
+        }
+    }
+
+    setInterval(fetchData, 1000);
+
+    async function applySettings() {
+        const payload = {};
+        ["accel-x", "accel-y", "accel-z", "temp", "humidity", "aqi"].forEach(id => {
+            payload[`thr-${id}`] = document.getElementById(`thr-${id}`).value;
+        });
+        await fetch('/api/thresholds', {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify(payload)
+        });
+        addLog("Thresholds Updated Successfully", "info");
+    }
+</script>
+</body>
+</html>
