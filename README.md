@@ -211,7 +211,7 @@ The SafeDrive System functions as an intelligent co-pilot that monitors the "hea
 
 ## 6.2 Labeled Build Sketch / Architecture / Flow Diagram / Algorithm
 
-NA
+![6TH](./images/6TH.png)
 
 ## 6.3 Approximate Dimensions
 
@@ -252,7 +252,7 @@ All components share a **common ground** with the Raspberry Pi for stable operat
 
 ## 7.3 Circuit Diagram
 
-`[Upload circuit diagram image here]`
+![7th](./images/7th.jpg)
 
 ## 7.4 Power Plan
 
@@ -312,7 +312,7 @@ All components share a **common ground** with the Raspberry Pi for stable operat
 
 ## 8.3 Code Flowchart
 
-![flowchart](./images/flowchart.jpeg)
+![code_flowchart](./images/code_flowchart.png)
 
 
 ---
