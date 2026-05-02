@@ -239,7 +239,7 @@ The SafeDrive System functions as an intelligent co-pilot that monitors the "hea
 
 The **Raspberry Pi 4B** is the central hub for all connections:
 
-- **MQ135 Gas Sensor:** The analog output of the MQ135 is stepped down from 5V to ~3.3V using a custom resistor voltage divider (10kΩ upper, 20kΩ lower) before connecting to a GPIO pin. The digital output (DO) pin connects directly to a GPIO input pin.
+- **MQ135 Gas Sensor:** The digital output (DO) pin connects directly to a GPIO input pin.
 - **DHT11 Sensor:** Data pin connects directly to a GPIO pin (e.g., GPIO4). Powered from the Pi's 3.3V rail.
 - **MPU6050:** Connected via I2C bus — SDA to GPIO2 (Pin 3), SCL to GPIO3 (Pin 5). Powered from the 3.3V rail.
 
@@ -282,7 +282,7 @@ All components share a **common ground** with the Raspberry Pi for stable operat
   The main loop polls all three sensors at a high-frequency interval (default: 500ms). To ensure stability and mitigate analog noise (especially from the open-air MQ135), readings are smoothed using a rolling average window before being evaluated by the decision engine.
 
 - **Sensor Reading:**
-  - **MQ135:** Reads both the digital state (threshold crossed) and the analog voltage (stepped down safely to 3.3V via the 10kΩ/20kΩ voltage divider).
+  - **MQ135:** Reads both the digital state (threshold crossed) and the analog voltage.
   - **DHT11:** Returns ambient temperature (°C) and relative humidity (%).
   - **MPU6050:** Captures raw X, Y, and Z acceleration vectors. The total acceleration magnitude ($|a| = \sqrt{a_x^2 + a_y^2 + a_z^2}$) is computed each cycle to isolate true kinetic events from directional noise.
 
@@ -294,7 +294,7 @@ All components share a **common ground** with the Raspberry Pi for stable operat
   - **Sensor Fusion:** CO₂ Warning + Temperature Warning simultaneously → Upgraded to "VENTILATE CABIN" Critical Alert.
 
 - **Output Behavior (Virtual UI):**
-  *(Note: Physical LED and haptic outputs are slated for the final enclosure build. In the current prototype, all output is routed to the web interface.)*
+  *(Note: Buzzer is slated for the final enclosure build. In the current prototype, all output is routed to the web interface.)*
   - **Normal State:** Web dashboard indicators display green (All safe).
   - **Warning State:** Specific sensor modules turn yellow on the dashboard.
   - **Critical State:** Dashboard modules turn red with a high-priority on-screen text alert.
@@ -321,9 +321,9 @@ All components share a **common ground** with the Raspberry Pi for stable operat
 | Item                        | Quantity | In Kit? | Need to Buy? | Estimated Cost (₹) | Material / Spec                     | Why This Choice?                                         |
 | --------------------------- | -------: | ------- | ------------ | ------------------: | ----------------------------------- | -------------------------------------------------------- |
 | Raspberry Pi 4B             | 1        | Yes     | No           | 0                   | 4GB RAM, 40-pin GPIO                | Edge processing hub; runs Python, Flask, I2C             |
-| MQ135 Gas Sensor Module     | 1        | No      | Yes          | 120                 | Analog + Digital output, 5V        | Detects CO₂, alcohol, smoke — key drowsiness indicator   |
-| DHT11 Sensor                | 1        | No      | Yes          | 60                  | 3.3V/5V, single-wire               | Temperature and humidity for heat-fatigue correlation    |
-| MPU6050 Accelerometer (I2C) | 1        | No      | Yes          | 100                 | 6-DOF, I2C, 3.3V                   | Detects G-force for harsh braking / impact detection     |                              |               |
+| MQ135 Gas Sensor Module     | 1        | No      | Yes          | 95                 | Analog + Digital output, 5V        | Detects CO₂, alcohol, smoke — key drowsiness indicator   |
+| DHT11 Sensor                | 1        | No      | Yes          | 45                  | 3.3V/5V, single-wire               | Temperature and humidity for heat-fatigue correlation    |
+| MPU6050 Accelerometer (I2C) | 1        | No      | Yes          | 150                 | 6-DOF, I2C, 3.3V                   | Detects G-force for harsh braking / impact detection     |                              |               |
 | Jumper Wires + Breadboard   | 1 set    | Yes     | No           | 0                   | Male-female, male-male             | Prototyping connections                                  |                 |
 
 ## 9.2 Material Justification
@@ -364,7 +364,7 @@ The project is designed to be low-cost by reusing the Raspberry Pi 4B and passiv
 
 ## 10.1 Team Working Agreement
 
-- **Task Division:** Tasks are divided by domain — Hrishikesh and Soham managed the Documentation. Muskan and Shaunak handeled the coding andhardware implementation.
+- **Task Division:** Tasks are divided by domain — Hrishikesh and Soham managed the Documentation. Muskan and Shaunak handeled the coding and hardware implementation.
 - **Decision Making:** Simple majority for minor decisions; full consensus required for major pivots (e.g., dropping a sensor or changing architecture).
 - **Progress Checks:** 15-minute sync at the start of each 2-hour block to review task status and blockers.
 - **Delayed Tasks:** If a task is delayed, the owner flags it immediately so the team can re-prioritize. Documentation is updated to reflect the change.
@@ -381,22 +381,22 @@ The project is designed to be low-cost by reusing the Raspberry Pi 4B and passiv
 | T5      | Write sensor reading Python scripts        | Muskan,Shaunak,Soham         | 2               | Hour 4         | T3, T4     | Done        |
 | T6      | Write threshold/alert decision logic       | Soham        | 1.5             | Hour 5         | T5         | Done        |
 | T7      | Build Flask dashboard UI                   | Soham         | 2               | Hour 6         | T6         | Done        |
-| T8      | Integration of all 3 sensors         | Shaunak            | 1               | Hour 4         | T3         | Done        |
-| T9      | Assemble on dot board           | Muskan     | 2               | Hour 6         | T3, T4     | Done        |
-| T10     | System integration test                   | All                | 1.5             | Hour 7         | T7, T8, T9 | Done        |
+| T8      | Integration of all 3 sensors         | Shaunak            | 1               | Hour 4         | T3, T4, T5         | Done        |
+| T9      | Assemble on dot board           | Muskan     | 2               | Hour 6         | T8     | Done        |
+| T10     | System integration test                   | All                | 1.5             | Hour 7         | T7, T9 | Done        |
 | T11     | Playtesting, bug fixes, UI polish          | All                | 1.5             | Hour 8         | T10        | Done        |
-| T12     | Final documentation and README update      | Hrishikesh         | 1               | End of Day     | T11        | Done        |
+| T12     | Final documentation and README update      | Hrishikesh         | 1               | End of Day     | T11        | Ongoing        |
 
 ## 10.3 Responsibility Split
 
-| Area               | Main Owner          | Support Owner        |
-| ------------------ | ------------------- | -------------------- |
-| Concept            | All                 | -                    |
-| Electronics        | Muskan, Shaunak      | Soham, Hrishikesh               |
-| Coding             | Soham, Muskan, Shaunak          | Hrishikesh                |
-| Mechanical Build   | Shaunak, Muskan     | Soham, Hrishikesh                |
-| Testing            | All                 | —                    |
-| Documentation      | Hrishikesh          | All                  |
+| Area               | Main Owner             | Support Owner        |
+| ------------------ | -------------------    | -------------------- |
+| Concept            | All                    | -                    |
+| Electronics        | Muskan, Shaunak        | Soham, Hrishikesh    |
+| Coding             | Soham, Muskan, Shaunak | Hrishikesh           |
+| Mechanical Build   | Shaunak, Muskan        | Soham, Hrishikes     |
+| Testing            | All                    | —                    |
+| Documentation      | Hrishikesh             | All                  |
 
 ---
 
