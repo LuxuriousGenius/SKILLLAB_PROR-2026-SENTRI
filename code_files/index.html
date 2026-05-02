@@ -1,0 +1,181 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>SafeDrive VCU | HUD</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        :root {
+            --bg: #030712; --card: #111827; --accent: #3b82f6;
+            --danger: #ef4444; --success: #10b981; --border: #1f2937; --text: #f9fafb;
+        }
+        body { background: var(--bg); color: var(--text); font-family: 'Inter', sans-serif; margin: 0; padding: 20px; }
+        .main-content { max-width: 1400px; margin: auto; display: grid; grid-template-columns: repeat(4, 1fr); gap: 15px; }
+
+        /* Stat Cards with Left Accent Bars */
+        .card { background: var(--card); border: 1px solid var(--border); border-radius: 8px; padding: 15px; position: relative; overflow: hidden; }
+        .stat-bar { position: absolute; left: 0; top: 0; bottom: 0; width: 5px; background: var(--accent); transition: 0.3s; }
+        .bar-safe { background: var(--success); }
+        .bar-danger { background: var(--danger); }
+
+        .full { grid-column: span 4; } .half { grid-column: span 2; } .stat { grid-column: span 1; }
+        .label { font-size: 0.7rem; color: #64748b; font-weight: 700; text-transform: uppercase; }
+        .value { font-size: 2rem; font-weight: 800; margin-top: 5px; }
+
+        /* Badge Styling */
+        .badge { padding: 6px 14px; border-radius: 6px; font-weight: 800; border: 1px solid transparent; transition: 0.3s; }
+        .badge-safe { color: var(--success); border-color: var(--success); background: rgba(16, 185, 129, 0.1); }
+        .badge-danger { color: var(--danger); border-color: var(--danger); background: rgba(239, 68, 68, 0.1); animation: blink 1s infinite; }
+
+        .aqi-bar { height: 10px; background: linear-gradient(to right, #10b981, #eab308, #ef4444); border-radius: 5px; position: relative; margin-top: 20px; }
+        .pointer { position: absolute; top: -5px; width: 3px; height: 20px; background: white; transition: 0.4s ease; }
+
+        @keyframes blink { 50% { opacity: 0.5; } }
+
+        /* Threshold Grid Styling */
+        .config-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-top: 15px; }
+        .input-group { display: flex; flex-direction: column; gap: 5px; }
+        .input-label { font-size: 0.65rem; color: var(--accent); font-weight: 700; text-transform: uppercase; }
+
+        input { background: #000; border: 1px solid var(--border); color: white; padding: 10px; border-radius: 4px; width: 100%; box-sizing: border-box; outline: none; }
+        input:focus { border-color: var(--accent); }
+
+        .btn-apply { background: var(--accent); color: white; border: none; padding: 12px; border-radius: 6px; width: 100%; font-weight: bold; cursor: pointer; margin-top: 15px; transition: opacity 0.2s; }
+        .btn-apply:active { opacity: 0.8; }
+    </style>
+</head>
+<body>
+
+    <div class="main-content">
+        <div class="full" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+            <h2 style="margin:0">SAFEDRIVE <span style="color:var(--accent)">VCU</span></h2>
+            <div id="clock" style="font-family: monospace; font-size: 1.2rem; color: #64748b;">--:--:-- --</div>
+        </div>
+
+        <!-- Metric Cards with Left Safety Bars -->
+        <div class="card stat"><div id="bar-risk" class="stat-bar"></div><div class="label">Drowsiness</div><div class="value" id="risk-val">--%</div></div>
+        <div class="card stat"><div id="bar-temp" class="stat-bar"></div><div class="label">Temp</div><div class="value" id="temp-val">--°C</div></div>
+        <div class="card stat"><div id="bar-hum" class="stat-bar"></div><div class="label">Humidity</div><div class="value" id="hum-val">--%</div></div>
+        <div class="card stat"><div id="bar-status" class="stat-bar"></div><div class="label">System</div><div class="value">OK</div></div>
+
+        <div class="card full">
+            <div class="label">Acceleration Dynamics ($g$)</div>
+            <canvas id="accelChart" height="80"></canvas>
+        </div>
+
+        <div class="card half">
+            <div class="label">Air Quality Status</div>
+            <div style="display: flex; justify-content: space-between; align-items: center; margin: 25px 0 10px 0;">
+                <div id="smoke-badge" class="badge badge-safe">SAFE</div>
+                <div id="smoke-text" style="color: #64748b; font-size: 0.85rem;">Normal Environment</div>
+            </div>
+            <div class="aqi-bar"><div id="aqi-ptr" class="pointer" style="left: 10%;"></div></div>
+        </div>
+
+        <div class="card half">
+            <div class="label" style="color:var(--text); margin-bottom: 5px;">Threshold Configuration</div>
+            <div class="config-grid">
+                <div class="input-group">
+                    <span class="input-label">Accel X</span>
+                    <input type="number" id="thr-accel-x" step="0.1">
+                </div>
+                <div class="input-group">
+                    <span class="input-label">Accel Y</span>
+                    <input type="number" id="thr-accel-y" step="0.1">
+                </div>
+                <div class="input-group">
+                    <span class="input-label">Temp Max</span>
+                    <input type="number" id="thr-temp" step="0.5">
+                </div>
+                <div class="input-group">
+                    <span class="input-label">Humidity Max</span>
+                    <input type="number" id="thr-hum" step="1">
+                </div>
+            </div>
+            <button class="btn-apply" onclick="applySettings()">Update VCU Settings</button>
+        </div>
+    </div>
+
+<script>
+    function updateClock() {
+        const now = new Date();
+        document.getElementById('clock').innerText = now.toLocaleTimeString('en-US', { hour12: true });
+    }
+    setInterval(updateClock, 1000);
+
+    const accelChart = new Chart(document.getElementById('accelChart'), {
+        type: 'line',
+        data: {
+            labels: Array(40).fill(''),
+            datasets: [
+                { label: 'X (Long)', borderColor: '#3b82f6', data: [], pointRadius: 0, tension: 0.4 },
+                { label: 'Y (Lat)', borderColor: '#10b981', data: [], pointRadius: 0, tension: 0.4 }
+            ]
+        },
+        options: { responsive: true, animation: false, scales: { x: { display: false }, y: { min: -2.5, max: 2.5, grid: { color: '#1f2937' } } } }
+    });
+
+    async function applySettings() {
+        const payload = {
+            "thr-accel-x": document.getElementById('thr-accel-x').value,
+            "thr-accel-y": document.getElementById('thr-accel-y').value,
+            "thr-temp": document.getElementById('thr-temp').value,
+            "thr-hum": document.getElementById('thr-hum').value
+        };
+        const response = await fetch('/api/thresholds', {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify(payload)
+        });
+        if(response.ok) alert("VCU: Thresholds Synced Successfully");
+    }
+
+    let initial = true;
+    async function fetchData() {
+        try {
+            const res = await fetch('/api/data');
+            const d = await res.json();
+
+            if (initial) {
+                document.getElementById('thr-accel-x').value = d.thresholds.accel_x;
+                document.getElementById('thr-accel-y').value = d.thresholds.accel_y;
+                document.getElementById('thr-temp').value = d.thresholds.temp;
+                document.getElementById('thr-hum').value = d.thresholds.humidity;
+                initial = false;
+            }
+
+            document.getElementById('risk-val').innerText = d.risk + "%";
+            document.getElementById('temp-val').innerText = d.temp + "°C";
+            document.getElementById('hum-val').innerText = d.humidity + "%";
+
+            // Status Bars (image_3dfed2.png style)
+            document.getElementById('bar-temp').className = `stat-bar ${d.temp > d.thresholds.temp ? 'bar-danger' : 'bar-safe'}`;
+            document.getElementById('bar-hum').className = `stat-bar ${d.humidity > d.thresholds.humidity ? 'bar-danger' : 'bar-safe'}`;
+            document.getElementById('bar-risk').className = `stat-bar ${d.risk > 80 ? 'bar-danger' : 'bar-safe'}`;
+
+            // Smoke Status Logic
+            const badge = document.getElementById('smoke-badge');
+            const ptr = document.getElementById('aqi-ptr');
+            if (d.smoke_status === "DANGER") {
+                badge.innerText = "DANGER";
+                badge.className = "badge badge-danger";
+                ptr.style.left = "90%";
+                document.getElementById('smoke-text').innerText = "SMOKE DETECTED";
+            } else {
+                badge.innerText = "SAFE";
+                badge.className = "badge badge-safe";
+                ptr.style.left = "10%";
+                document.getElementById('smoke-text').innerText = "Normal Environment";
+            }
+
+            // Update Chart
+            accelChart.data.datasets[0].data.push(d.accel_x);
+            accelChart.data.datasets[1].data.push(d.accel_y);
+            if(accelChart.data.datasets[0].data.length > 40) accelChart.data.datasets.forEach(ds => ds.data.shift());
+            accelChart.update();
+        } catch(e) {}
+    }
+    setInterval(fetchData, 1000);
+</script>
+</body>
+</html>
