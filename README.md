@@ -72,7 +72,7 @@ By the final review, this README should clearly show:
 
 
 
-![SafeDrive System](https://github.com/user-attachments/assets/c64bfbd4-b3b7-43d9-83ad-c203a5aa11bc)
+![SafeDrive System](./images/safe_drive_system_image.png)
 
 ## 1.4 One-Line Pitch
 
@@ -530,7 +530,6 @@ The biggest uncertainty is **MQ135 calibration accuracy** in a real vehicle cabi
 
 ![Build Photo 1](https://github.com/user-attachments/assets/74baa570-5770-483e-be6d-d2f03386e37c)
 
-`[Add more photos: early wiring, assembled enclosure, dashboard screenshot, final mounted unit]`
 
 ---
 
